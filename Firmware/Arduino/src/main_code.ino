@@ -46,16 +46,14 @@ void setup()
     //Prepara chave - padrao de fabrica = FFFFFFFFFFFFh
     for (byte i = 0; i < 6; i++) key.keyByte[i] = 0xFF;
 }
-
-void loop()
-{
+String serialOp; // Variable for receiving commands from serial
+void loop(){
     if(Serial.available() > 0){
         serialOp = Serial.readString();
         if(serialOp == CMD_RFID_READ){
             Serial.println("Modo leitura selecionado");
             delay(3000); //NOTE: why they use this delay?
             modo_leitura();
-
         }
         else if(serialOp == CMD_RFID_WRITE){
             Serial.println("Modo gravacao selecionado");
@@ -65,8 +63,7 @@ void loop()
     }
 }
 
-void modo_leitura()
-{
+void modo_leitura() {
   mensagem_inicial_cartao();
   //Aguarda cartao
   while ( ! rfid.PICC_IsNewCardPresent()){
@@ -91,7 +88,7 @@ void modo_leitura()
   byte sector         = 1;
   byte blockAddr      = 4;
   byte trailerBlock   = 7;
-  byte status;
+  MFRC522::StatusCode status;
   byte buffer[18];
   byte size = sizeof(buffer);
 
@@ -148,8 +145,7 @@ void modo_leitura()
   mensageminicial();
 }
 
-void modo_gravacao()
-{
+void modo_gravacao(){
   mensagem_inicial_cartao();
   //Aguarda cartao
   while ( ! rfid.PICC_IsNewCardPresent()) {
@@ -166,19 +162,16 @@ void modo_gravacao()
   }
   //Mostra o tipo do cartao
   Serial.print(F("\nTipo do PICC: "));
-  byte piccType = rfid.PICC_GetType(rfid.uid.sak);
+  MFRC522::PICC_Type piccType = rfid.PICC_GetType(rfid.uid.sak);
   Serial.println(rfid.PICC_GetTypeName(piccType));
 
   byte buffer[34];
   byte block;
-  byte status, len;
+  MFRC522::StatusCode status;
+  byte len;
 
   Serial.setTimeout(20000L) ;
   Serial.println(F("Digite o sobrenome,em seguida o caractere #"));
-  lcd.clear();
-  lcd.print("Digite o sobreno");
-  lcd.setCursor(0, 1);
-  lcd.print("me + #");
   len = Serial.readBytesUntil('#', (char *) buffer, 30) ;
   for (byte i = len; i < 30; i++) buffer[i] = ' ';
 
@@ -204,36 +197,24 @@ void modo_gravacao()
   //Serial.println(F("Autenticacao usando chave A..."));
   status=rfid.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A,
                                     block, &key, &(rfid.uid));
-  if (status != MFRC522::STATUS_OK) {
-    Serial.print(F("PCD_Authenticate() failed: "));
-    Serial.println(rfid.GetStatusCodeName(status));
-    return;
-  }
-
-  //Grava no bloco 2
-  status = rfid.MIFARE_Write(block, &buffer[16], 16);
-  if (status != MFRC522::STATUS_OK) {
-    Serial.print(F("MIFARE_Write() failed: "));
-    Serial.println(rfid.GetStatusCodeName(status));
-    return;
-  }
+    if (status != MFRC522::STATUS_OK) {
+      Serial.print(F("PCD_Authenticate() failed: "));
+      Serial.println(rfid.GetStatusCodeName(status));
+      return;
+    }
 
   Serial.println(F("Digite o nome, em seguida o caractere #"));
-  lcd.clear();
-  lcd.print("Digite o nome e");
-  lcd.setCursor(0, 1);
-  lcd.print("em seguida #");
   len = Serial.readBytesUntil('#', (char *) buffer, 20) ;
   for (byte i = len; i < 20; i++) buffer[i] = ' ';
 
   block = 4;
   //Serial.println(F("Autenticacao usando chave A..."));
-  status=rfid.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A,
-                                    block, &key, &(rfid.uid));
-  if (status != MFRC522::STATUS_OK) {
-    Serial.print(F("PCD_Authenticate() failed: "));
-    Serial.println(rfid.GetStatusCodeName(status));
-    return;
+    status=rfid.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A,
+                                      block, &key, &(rfid.uid));
+    if (status != MFRC522::STATUS_OK) {
+      Serial.print(F("PCD_Authenticate() failed: "));
+      Serial.println(rfid.GetStatusCodeName(status));
+      return;
   }
 
   //Grava no bloco 4
@@ -264,8 +245,6 @@ void modo_gravacao()
   else
   {
     Serial.println(F("Dados gravados com sucesso!"));
-    lcd.clear();
-    lcd.print("Gravacao OK!");
   }
 
   rfid.PICC_HaltA(); // Halt PICC
@@ -274,15 +253,13 @@ void modo_gravacao()
   mensageminicial();
 }
 
-void mensageminicial()
-{
-  Serial.println("\nSelecione o modo leitura ou gravacao...")
+void mensageminicial(){
+  Serial.println("\nSelecione o modo leitura ou gravacao...");
   Serial.println(CMD_RFID_READ);
   Serial.println(CMD_RFID_WRITE);
   Serial.println();
 }
 
-void mensagem_inicial_cartao()
-{
+void mensagem_inicial_cartao(){
   Serial.println("Aproxime o seu cartao do leitor...");
 }
