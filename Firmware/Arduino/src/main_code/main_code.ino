@@ -25,7 +25,7 @@
 #include <SPI.h>
 #include <MFRC522.h>
 
-#define uart_baudrate 38400
+#define uart_baudrate 115200
 
 #define UART_START_SIGNAL 0x53
 
