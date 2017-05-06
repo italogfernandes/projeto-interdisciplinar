@@ -17,14 +17,12 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Set;
 
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
+
 
 public class MainActivity extends AppCompatActivity {
     Button btn_bt_turn_on,btn_bt_turn_off,btn_bt_list_devices, btn_bt_get_visible;
     private BluetoothAdapter bt_adapter;
-    private Set<BluetoothDevice> pairedDevices;
     ListView lv_devices;
 
     @Override
@@ -80,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<String> devices_list = new ArrayList<>();
 
         for(BluetoothDevice bt_dev : pairedDevices) {
-            devices_list.add(bt_dev.getName() + " - " + bt_dev.getAddress());
+            devices_list.add(bt_dev.getName());
         }
         Toast.makeText(getApplicationContext(), getString(R.string.bt_show_devices), Toast.LENGTH_SHORT).show();
 
@@ -88,7 +86,6 @@ public class MainActivity extends AppCompatActivity {
                 this, android.R.layout.simple_list_item_1, devices_list);
 
         lv_devices.setAdapter(list_dev_adapter);
-        l
     }
 
     @Override
