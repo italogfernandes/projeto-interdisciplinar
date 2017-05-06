@@ -6,4 +6,6 @@
     <string name="get_visible">Get Visible</string>
     <string name="list_devices">List Devices</string>
     <string name="bt_message_menu">Bluetooth Settings:</string>
+    <string name="bt_turned_on">Bluetooth Turned On.</string>
+    <string name="bt_already_on">Bluetooth Already On.</string>
 </resources>

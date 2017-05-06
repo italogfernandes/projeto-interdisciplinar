@@ -2,6 +2,7 @@ package ufu.biolab.italo.idbracelet;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -12,23 +13,32 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.Set;
 
+import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
+
 public class MainActivity extends AppCompatActivity {
-    /*Button b1,b2,b3,b4;
+    Button btn_bt_turn_on,btn_bt_turn_off,btn_bt_list_devices, btn_bt_get_visible;
     private BluetoothAdapter bt_adapter;
     private Set<BluetoothDevice> pairedDevices;
-    ListView lv_devices;*/
+    ListView lv_devices;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //b1 = (Button) findViewById(R.id.btn1);
-
-
+        btn_bt_turn_on = (Button) findViewById(R.id.btn_turn_on);
+        btn_bt_turn_off = (Button) findViewById(R.id.btn_turn_off);
+        btn_bt_list_devices = (Button) findViewById(R.id.btn_list_devices);
+        btn_bt_get_visible = (Button) findViewById(R.id.btn_get_visible);
+        
+        bt_adapter = BluetoothAdapter.getDefaultAdapter();
+        lv_devices = (ListView) findViewById(R.id.list_view_devices);
+        
+        
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -40,6 +50,16 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+    }
+    
+    public void btnOnClicked(View v){
+        if(!bt_adapter.isEnabled()){
+            Intent turn_on_intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(turn_on_intent,0);
+            Toast.makeText(getApplicationContext(),getString(R.string.bt_turned_on), Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getApplicationContext(),getString(R.string.bt_already_on), Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
