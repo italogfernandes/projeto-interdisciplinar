@@ -11,10 +11,12 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
@@ -60,6 +62,33 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Toast.makeText(getApplicationContext(),getString(R.string.bt_already_on), Toast.LENGTH_SHORT).show();
         }
+    }
+    
+    public void btnOffClicked(View v){
+        bt_adapter.disable();
+        Toast.makeText(getApplicationContext(),getString(R.string.bt_turned_off), Toast.LENGTH_SHORT).show();
+    }
+
+    public void btnGetVisibleClicked(View v){
+        Intent it_getVisible = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+        startActivityForResult(it_getVisible,0);
+    }
+
+    public void btnListClicked(View v){
+        pairedDevices = bt_adapter.getBondedDevices();
+
+        ArrayList<String> devices_list = new ArrayList<>();
+
+        for(BluetoothDevice bt_dev : pairedDevices) {
+            devices_list.add(bt_dev.getName() + " - " + bt_dev.getAddress());
+        }
+        Toast.makeText(getApplicationContext(), getString(R.string.bt_show_devices), Toast.LENGTH_SHORT).show();
+
+        final ArrayAdapter<String> list_dev_adapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_list_item_1, devices_list);
+
+        lv_devices.setAdapter(list_dev_adapter);
+        l
     }
 
     @Override
