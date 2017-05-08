@@ -1,13 +1,19 @@
 <resources>
     <string name="app_name">IDBracelet</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
     <string name="action_settings">Settings</string>
-    <string name="turn_on">Turn On</string>
-    <string name="turn_off">Turn Off</string>
-    <string name="get_visible">Set Visible</string>
-    <string name="list_devices">List Paired Devices</string>
-    <string name="bt_message_menu">Bluetooth Paired Devices:</string>
-    <string name="bt_turned_on">Turning Bluetooth On.</string>
-    <string name="bt_already_on">Bluetooth Already On.</string>
-    <string name="bt_turned_off">Bluetooth Turned Off.</string>
-    <string name="bt_show_devices">Showing Paired Devices.</string>
+
+    <string name="reconhecer">Reconhecer</string>
+    <string name="cadastrar">Cadastrar</string>
+    <string name="consultar">Consultar Dados</string>
+    <string name="tools">Tools</string>
+    <string name="about_msg">Sobre</string>
+    <string name="share">Compartilhar</string>
+    <string name="send">Enviar</string>
+    <string name="comunicate">Comunicar</string>
+
+
 </resources>
