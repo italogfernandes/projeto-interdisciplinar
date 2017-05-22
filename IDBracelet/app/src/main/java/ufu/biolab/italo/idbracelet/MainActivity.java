@@ -1,5 +1,6 @@
 package ufu.biolab.italo.idbracelet;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -83,16 +84,17 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_recognize) {
-            // Handle the camera action
             Toast.makeText(this, "Recognize activity", Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_cadastro) {
-            Toast.makeText(this, "Cadastro activity", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "Cadastro activity", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(MainActivity.this,CadastroActivity.class));
 
         } else if (id == R.id.nav_consulta) {
             Toast.makeText(this, "Consulta activity", Toast.LENGTH_SHORT).show();
 
         } else if (id == R.id.nav_manage) {
             Toast.makeText(this, "Manage activity", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(MainActivity.this,SettingsActivity.class));
 
         } else if (id == R.id.nav_about) {
             Toast.makeText(this, "About activity", Toast.LENGTH_SHORT).show();
