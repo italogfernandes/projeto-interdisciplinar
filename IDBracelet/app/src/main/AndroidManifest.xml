@@ -40,7 +40,16 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="ufu.biolab.italo.idbracelet.MainActivity" />
         </activity>
-        <activity android:name=".CadastroActivity"></activity>
+        <activity android:name=".CadastroActivity" />
+        <activity
+            android:name=".PacienteActivity"
+            android:label="@string/title_activity_paciente"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="ufu.biolab.italo.idbracelet.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

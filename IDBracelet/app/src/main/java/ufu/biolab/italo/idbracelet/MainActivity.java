@@ -91,6 +91,7 @@ public class MainActivity extends AppCompatActivity
 
         } else if (id == R.id.nav_consulta) {
             Toast.makeText(this, "Consulta activity", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(MainActivity.this,PacienteActivity.class));
 
         } else if (id == R.id.nav_manage) {
             Toast.makeText(this, "Manage activity", Toast.LENGTH_SHORT).show();
