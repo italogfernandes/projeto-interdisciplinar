@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_recognize"
+            android:icon="@android:drawable/ic_menu_upload"
+            android:title="@string/reconhecer"/>
+        <item
+            android:id="@+id/nav_cadastro"
+            android:icon="@android:drawable/ic_input_add"
+            android:title="@string/cadastrar"/>
+        <item
+            android:id="@+id/nav_consulta"
+            android:icon="@android:drawable/ic_menu_search"
+            android:title="@string/consultar" />
+        <item
+            android:id="@+id/nav_manage"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="@string/tools" />
+        <item
+            android:id="@+id/nav_about"
+            android:icon="@android:drawable/ic_menu_info_details"
+            android:title="@string/about_msg"/>
+    </group>
+
+    <item android:title="@string/comunicate">
+        <menu>
+            <item
+                android:id="@+id/nav_share"
+                android:icon="@drawable/ic_menu_share"
+                android:title="@string/share" />
+            <item
+                android:id="@+id/nav_send"
+                android:icon="@drawable/ic_menu_send"
+                android:title="@string/send" />
+        </menu>
+    </item>
+
+</menu>

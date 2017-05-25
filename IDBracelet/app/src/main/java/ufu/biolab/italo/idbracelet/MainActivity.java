@@ -1,44 +1,27 @@
 package ufu.biolab.italo.idbracelet;
 
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.view.View;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ListView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-
-
-
-public class MainActivity extends AppCompatActivity {
-    Button btn_bt_turn_on,btn_bt_turn_off,btn_bt_list_devices, btn_bt_get_visible;
-    private BluetoothAdapter bt_adapter;
-    ListView lv_devices;
+public class MainActivity extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        btn_bt_turn_on = (Button) findViewById(R.id.btn_turn_on);
-        btn_bt_turn_off = (Button) findViewById(R.id.btn_turn_off);
-        btn_bt_list_devices = (Button) findViewById(R.id.btn_list_devices);
-        btn_bt_get_visible = (Button) findViewById(R.id.btn_get_visible);
-        
-        bt_adapter = BluetoothAdapter.getDefaultAdapter();
-        lv_devices = (ListView) findViewById(R.id.list_view_devices);
-        
-        
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -50,48 +33,31 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+            this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
     }
-    
-    public void btnOnClicked(View v){
-        if(!bt_adapter.isEnabled()){
-            Intent turn_on_intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(turn_on_intent,0);
-            Toast.makeText(getApplicationContext(),getString(R.string.bt_turned_on), Toast.LENGTH_SHORT).show();
+
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
         } else {
-            Toast.makeText(getApplicationContext(),getString(R.string.bt_already_on), Toast.LENGTH_SHORT).show();
+            super.onBackPressed();
         }
-    }
-    
-    public void btnOffClicked(View v){
-        bt_adapter.disable();
-        Toast.makeText(getApplicationContext(),getString(R.string.bt_turned_off), Toast.LENGTH_SHORT).show();
-    }
-
-    public void btnGetVisibleClicked(View v){
-        Intent it_getVisible = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-        startActivityForResult(it_getVisible,0);
-    }
-
-    public void btnListClicked(View v){
-        pairedDevices = bt_adapter.getBondedDevices();
-
-        ArrayList<String> devices_list = new ArrayList<>();
-
-        for(BluetoothDevice bt_dev : pairedDevices) {
-            devices_list.add(bt_dev.getName());
-        }
-        Toast.makeText(getApplicationContext(), getString(R.string.bt_show_devices), Toast.LENGTH_SHORT).show();
-
-        final ArrayAdapter<String> list_dev_adapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_list_item_1, devices_list);
-
-        lv_devices.setAdapter(list_dev_adapter);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
@@ -104,9 +70,46 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Toast.makeText(getApplicationContext(), "Settings clicked", Toast.LENGTH_SHORT).show();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+        if (id == R.id.nav_recognize) {
+            Toast.makeText(this, "Recognize activity", Toast.LENGTH_SHORT).show();
+        } else if (id == R.id.nav_cadastro) {
+            //Toast.makeText(this, "Cadastro activity", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(MainActivity.this,CadastroActivity.class));
+
+        } else if (id == R.id.nav_consulta) {
+            Toast.makeText(this, "Consulta activity", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(MainActivity.this,PacienteActivity.class));
+
+        } else if (id == R.id.nav_manage) {
+            Toast.makeText(this, "Manage activity", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(MainActivity.this,SettingsActivity.class));
+
+        } else if (id == R.id.nav_about) {
+            Toast.makeText(this, "About activity", Toast.LENGTH_SHORT).show();
+
+        } else if (id == R.id.nav_share) {
+            Toast.makeText(this, "Share activity", Toast.LENGTH_SHORT).show();
+
+        } else if (id == R.id.nav_send) {
+            Toast.makeText(this, "Send activity", Toast.LENGTH_SHORT).show();
+
+        }
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
     }
 }
