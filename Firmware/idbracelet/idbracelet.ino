@@ -37,7 +37,7 @@
 #define LED_Y 3
 
 //Mensagens
-#define ERROR_MSG(x) Serial.print("$E" + String(x) + "\n");
+#define ERROR_MSG(x) Serial.print("$E" + String(x) + "\n")
 #define LOG_MSG(x) Serial.print("$L" + String(x) + "\n")
 
 //RFID
@@ -49,6 +49,13 @@ MFRC522::MIFARE_Key key;
 //Protocolo
 uint32_t actual_patient_id;
 uint8_t id_values[4];
+bool estado_writing = 0;
+
+void dump_byte_array(byte *buffer_rfid, byte bufferSize);
+void ler_paciente_id();
+void write_id_to_rfid();
+void recebe_comando_bt();
+
 void setup() {
   //GPIO
   pinMode(LED_R, OUTPUT);
@@ -63,10 +70,10 @@ void setup() {
   }
 
   //Mensagens de LOG iniciais
-  LOG_MSG("Scan a MIFARE Classic PICC to demonstrate read and write."));
+  LOG_MSG("Scan a MIFARE Classic PICC to demonstrate read and write.");
   LOG_MSG("Using key (for A and B):");
   dump_byte_array(key.keyByte, MFRC522::MF_KEY_SIZE);
-  LOG_MSG("BEWARE: Data will be written to the PICC, in sector #1"));
+  LOG_MSG("BEWARE: Data will be written to the PICC, in sector #1");
 
   LOG_MSG("Setup completed.");
   digitalWrite(LED_Y, 1); digitalWrite(LED_R, 0); delay(500); digitalWrite(LED_Y, 0); digitalWrite(LED_R, 1);
@@ -82,8 +89,16 @@ void loop() {
   }
   // Look for new cards and Select one of the cards
   if ( mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) {
-    ler_paciente_id();
+    if (estado_writing) {
+      write_id_to_rfid();
+      estado_writing = 0;
+    } else {
+      ler_paciente_id();
+    }
   }
+  digitalWrite(LED_R, estado_writing);
+  digitalWrite(LED_Y, !estado_writing);
+
 }
 
 
@@ -96,7 +111,7 @@ void recebe_comando_bt() {
         id_values[2] = Serial.read();
         id_values[3] = Serial.read();
         if (Serial.read() == '\n') {
-          write_id_to_rfid();
+          estado_writing = 1;
         }
         break;
     }
@@ -104,10 +119,11 @@ void recebe_comando_bt() {
 }
 
 void write_id_to_rfid() {
+
   // Show some details of the PICC (that is: the tag/card)
-  LOG_MSG("Card UID:"));
+  LOG_MSG("Card UID:");
   dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
-  LOG_MSG("PICC type: "));
+  LOG_MSG("PICC type: ");
   MFRC522::PICC_Type piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
   LOG_MSG(mfrc522.PICC_GetTypeName(piccType));
 
@@ -115,70 +131,53 @@ void write_id_to_rfid() {
   if (    piccType != MFRC522::PICC_TYPE_MIFARE_MINI
           &&  piccType != MFRC522::PICC_TYPE_MIFARE_1K
           &&  piccType != MFRC522::PICC_TYPE_MIFARE_4K) {
-  ERROR_MSG("This sample only works with MIFARE Classic cards."));
+    ERROR_MSG("This sample only works with MIFARE Classic cards.");
     return;
   }
 
   // In this sample we use the second sector,
   // that is: sector #1, covering block #4 up to and including block #7
-  byte sector         = 1;
+  byte sector         = 2;
   byte blockAddr      = 4;
   byte trailerBlock   = 7;
   MFRC522::StatusCode status;
-  byte buffer[18];
-  byte size = sizeof(buffer);
+  byte buffer_rfid[18];
+  byte size_buffer_rfid = sizeof(buffer_rfid);
 
-  // Authenticate using key B
-  LOG_MSG("Authenticating using key B..."));
-  status = (MFRC522::StatusCode) mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_B, trailerBlock, &key, &(mfrc522.uid));
+  // Authenticate using key A
+  LOG_MSG("Authenticating using key A...");
+  status = mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, blockAddr, &key, &(mfrc522.uid));
   if (status != MFRC522::STATUS_OK) {
-  ERROR_MSG("PCD_Authenticate() failed: "));
+    ERROR_MSG("PCD_Authenticate() failed: ");
     ERROR_MSG(mfrc522.GetStatusCodeName(status));
     return;
   }
 
   // Write data to the block
-  LOG_MSG("Writing data into block ")); LOG_MSG(blockAddr);
-  LOG_MSG(" ..."));
+  LOG_MSG("Writing data into block "); LOG_MSG(blockAddr);
+  LOG_MSG(" ...");
   dump_byte_array(id_values, 4);
-  status = (MFRC522::StatusCode) mfrc522.MIFARE_Write(blockAddr, id_values, 4);
+  buffer_rfid[0] = id_values[0]; buffer_rfid[1] = id_values[1]; buffer_rfid[2] = id_values[2]; buffer_rfid[3] = id_values[3];
+  status = (MFRC522::StatusCode) mfrc522.MIFARE_Write(blockAddr, buffer_rfid, 16);
   if (status != MFRC522::STATUS_OK) {
-  ERROR_MSG("MIFARE_Write() failed: "));
+    ERROR_MSG("MIFARE_Write() failed: ");
     ERROR_MSG(mfrc522.GetStatusCodeName(status));
   }
   // Read data from the block (again, should now be what we have written)
-  LOG_MSG("Reading data from block ")); LOG_MSG(blockAddr);
-  LOG_MSG(" ..."));
-  status = (MFRC522::StatusCode) mfrc522.MIFARE_Read(blockAddr, buffer, &size);
+  LOG_MSG("Reading data from block "); LOG_MSG(blockAddr);
+  LOG_MSG(" ...");
+  status = (MFRC522::StatusCode) mfrc522.MIFARE_Read(blockAddr, buffer_rfid, &size_buffer_rfid);
   if (status != MFRC522::STATUS_OK) {
-  ERROR_MSG("MIFARE_Read() failed: "));
+    ERROR_MSG("MIFARE_Read() failed: ");
     ERROR_MSG(mfrc522.GetStatusCodeName(status));
   }
-  LOG_MSG("Data in block ")); LOG_MSG(blockAddr); LOG_MSG(":"));
-  dump_byte_array(buffer, 4);
-
-  // Check that data in block is what we have written
-  // by counting the number of bytes that are equal
-  LOG_MSG("Checking result..."));
-  byte count = 0;
-  for (byte i = 0; i < 4; i++) {
-  // Compare buffer (= what we've read) with dataBlock (= what we've written)
-  if (buffer[i] == dataBlock[i])
-      count++;
-  }
-  LOG_MSG("Number of bytes that match = ")); LOG_MSG(count);
-  if (count == 4) {
-  LOG_MSG("Success :-)"));
+  LOG_MSG("Data in block "); LOG_MSG(blockAddr); LOG_MSG(":");
+  dump_byte_array(buffer_rfid, 4);
+  if(buffer_rfid[0] == id_values[0] && buffer_rfid[1] == id_values[1] && buffer_rfid[2] == id_values[2] && buffer_rfid[3] == id_values[3]){
+    LOG_MSG("TUDO OK :)");
   } else {
-    ERROR_MSG("Failure, no match :-("));
-    ERROR_MSG("  perhaps the write didn't work properly..."));
+    ERROR_MSG("Não vai dar não.");
   }
-
-  // Dump the sector data
-  LOG_MSG("Current data in sector:"));
-  Serial.print("$L");
-  mfrc522.PICC_DumpMifareClassicSectorToSerial(&(mfrc522.uid), &key, sector);
-  Serial.print("\n");
 
   // Halt PICC
   mfrc522.PICC_HaltA();
@@ -186,11 +185,12 @@ void write_id_to_rfid() {
   mfrc522.PCD_StopCrypto1();
 }
 
+
 void ler_paciente_id() {
   // Show some details of the PICC (that is: the tag/card)
-  LOG_MSG("Card UID:"));
+  LOG_MSG("Card UID:");
   dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
-  LOG_MSG("PICC type: "));
+  LOG_MSG("PICC type: ");
   MFRC522::PICC_Type piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
   LOG_MSG(mfrc522.PICC_GetTypeName(piccType));
 
@@ -198,44 +198,51 @@ void ler_paciente_id() {
   if (    piccType != MFRC522::PICC_TYPE_MIFARE_MINI
           &&  piccType != MFRC522::PICC_TYPE_MIFARE_1K
           &&  piccType != MFRC522::PICC_TYPE_MIFARE_4K) {
-  ERROR_MSG("This sample only works with MIFARE Classic cards."));
+    ERROR_MSG("This sample only works with MIFARE Classic cards.");
     return;
   }
 
   // In this sample we use the second sector,
   // that is: sector #1, covering block #4 up to and including block #7
-  byte sector         = 1;
+  byte sector         = 2;
   byte blockAddr      = 4;
   byte trailerBlock   = 7;
   MFRC522::StatusCode status;
-  byte buffer[18];
-  byte size = sizeof(buffer);
+  byte buffer_rfid[18];
+  byte size_buffer_rfid = sizeof(buffer_rfid);
 
   // Authenticate using key A
-  LOG_MSG("Authenticating using key A..."));
+  LOG_MSG("Authenticating using key A...");
   status = (MFRC522::StatusCode) mfrc522.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, trailerBlock, &key, &(mfrc522.uid));
   if (status != MFRC522::STATUS_OK) {
-  ERROR_MSG("PCD_Authenticate() failed: "));
+    ERROR_MSG("PCD_Authenticate() failed: ");
     ERROR_MSG(mfrc522.GetStatusCodeName(status));
     return;
   }
 
   // Show the whole sector as it currently is
-  LOG_MSG("Current data in sector:"));
-  Serial.print("$L");
-  mfrc522.PICC_DumpMifareClassicSectorToSerial(&(mfrc522.uid), &key, sector);
-  Serial.print("\n");
+  //LOG_MSG("Current data in sector:");
+  //Serial.print("$L");
+  //mfrc522.PICC_DumpMifareClassicSectorToSerial(&(mfrc522.uid), &key, sector);
+  //Serial.print("\n");
 
   // Read data from the block
-  LOG_MSG("Reading data from block ")); LOG_MSG(blockAddr);
+  LOG_MSG("Reading data from block "); LOG_MSG(blockAddr);
   LOG_MSG(" ...");
-  status = (MFRC522::StatusCode) mfrc522.MIFARE_Read(blockAddr, buffer, &size);
+  status = (MFRC522::StatusCode) mfrc522.MIFARE_Read(blockAddr, buffer_rfid, &size_buffer_rfid);
   if (status != MFRC522::STATUS_OK) {
-  ERROR_MSG("MIFARE_Read() failed: ");
+    ERROR_MSG("MIFARE_Read() failed: ");
     ERROR_MSG(mfrc522.GetStatusCodeName(status));
   }
-  LOG_MSG(("Data in block ")); LOG_MSG(blockAddr); LOG_MSG((":"));
-  dump_byte_array(buffer, 16);
+  LOG_MSG(("Data in block " + String(blockAddr) + ":"));
+  dump_byte_array(buffer_rfid, 16);
+  LOG_MSG(("Data in block " + String(blockAddr) + ":" ));
+  Serial.print("$L");
+  for (int i = 0 ; i < 18; i++) {
+    Serial.print((char)(buffer_rfid[i]));
+  }
+  Serial.print("\n");
+
 
   // Halt PICC
   mfrc522.PICC_HaltA();
@@ -243,19 +250,24 @@ void ler_paciente_id() {
   mfrc522.PCD_StopCrypto1();
 
   //SENDING Pacote de leitura
+  Serial.print("\r\n");
+  Serial.print("\n");
   Serial.print("$R");
-  Serial.write(buffer, 4);
+  Serial.write(buffer_rfid[0]);
+  Serial.write(buffer_rfid[1]);
+  Serial.write(buffer_rfid[2]);
+  Serial.write(buffer_rfid[3]);
   Serial.print("\n");
 }
 
 /**
    Helper routine to dump a byte array as hex values to Serial.
 */
-void dump_byte_array(byte *buffer, byte bufferSize) {
+void dump_byte_array(byte *buffer_rfid, byte bufferSize) {
   Serial.print("$L");
   for (byte i = 0; i < bufferSize; i++) {
-    Serial.print(buffer[i] < 0x10 ? " 0" : " ");
-    Serial.print(buffer[i], HEX);
+    Serial.print(buffer_rfid[i] < 0x10 ? " 0" : " ");
+    Serial.print(buffer_rfid[i], HEX);
   }
   Serial.print("\n");
 }
